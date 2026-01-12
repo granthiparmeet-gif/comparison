@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Domain Keyword Analyzer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main class="panel">
+    <h1>Domain Keyword Analyzer</h1>
+    <section class="inputs">
+      <label for="domain-input">Domain List (one per line, no TLDs)</label>
+      <textarea id="domain-input" rows="10" placeholder="greenenergy\npayfast\nfastpay\nsupergreenpay"></textarea>
+
+      <div class="dataset-note">
+        <p>
+          Comparing your domain list against <span id="dataset-count">0</span> entries loaded from
+          <code>unreported_sales.csv</code>.
+        </p>
+        <p id="dataset-status" class="dataset-status"></p>
+      </div>
+
+      <button id="analyze-btn">Analyze Against CSV</button>
+    </section>
+
+    <section class="results">
+      <h2>Keyword Breakdown</h2>
+      <div class="table-wrapper">
+        <table id="results-table">
+          <thead>
+            <tr>
+              <th>Keyword</th>
+              <th>Prefix Count</th>
+              <th>Suffix Count</th>
+              <th>Exact Match Count</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Filled by JS -->
+          </tbody>
+        </table>
+      </div>
+      <div id="detail-panels"></div>
+    </section>
+  </main>
+  <script src="domain-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
