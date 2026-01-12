@@ -10,10 +10,9 @@ const publicDir = path.join(__dirname, 'public');
 const csvPath = path.join(__dirname, 'unreported_sales.csv');
 let cachedDomains = null;
 
-const extractDomainField = (line) => {
-  const targetIndex = 1;
+const parseCsvLine = (line) => {
+  const fields = [];
   let field = '';
-  let currentIndex = 0;
   let inQuotes = false;
 
   for (let i = 0; i <= line.length; i += 1) {
@@ -32,10 +31,7 @@ const extractDomainField = (line) => {
 
     const isDelimiter = char === ',' && !inQuotes;
     if (atEnd || isDelimiter) {
-      if (currentIndex === targetIndex) {
-        return field;
-      }
-      currentIndex += 1;
+      fields.push(field);
       field = '';
       continue;
     }
@@ -45,7 +41,7 @@ const extractDomainField = (line) => {
     }
   }
 
-  return null;
+  return fields;
 };
 
 const stripTld = (domain) => {
@@ -70,12 +66,21 @@ const loadDomainsFromCsv = () => {
   lines.shift(); // remove header
 
   cachedDomains = lines
-    .map((line) => extractDomainField(line))
-    .filter(Boolean)
-    .map((domain) => ({
-      label: stripTld(domain),
-      domain: domain.trim(),
-    }));
+    .map((line) => parseCsvLine(line))
+    .filter((fields) => fields && fields[1])
+    .map((fields) => {
+      const domain = fields[1].trim();
+      const price = (fields[2] || '').trim();
+      const date = (fields[3] || '').trim();
+      const venue = (fields[6] || '').trim();
+      return {
+        label: stripTld(domain),
+        domain,
+        price,
+        date,
+        venue,
+      };
+    });
 
   return cachedDomains;
 };

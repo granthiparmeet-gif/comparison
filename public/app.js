@@ -13,13 +13,62 @@ const parseDomainList = (raw) =>
     .map((value) => value.trim())
     .filter((value) => value.length > 0);
 
-const renderDetailPanel = (keyword, type, matches) => {
+const createCountButton = (count, keyword, type, matches) => {
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.textContent = count;
+  button.disabled = count === 0;
+  button.addEventListener('click', () => renderDetailRow(button.closest('tr'), keyword, type, matches));
+  return button;
+};
+
+const renderDetailRow = (row, keyword, type, matches) => {
+  if (!row) {
+    return;
+  }
+
+  const nextRow = row.nextElementSibling;
+  if (nextRow && nextRow.classList.contains('detail-row')) {
+    if (nextRow.dataset.keyword === keyword && nextRow.dataset.detailType === type) {
+      nextRow.remove();
+      return;
+    }
+    nextRow.remove();
+  }
+
+  const detailRow = document.createElement('tr');
+  detailRow.className = 'detail-row';
+  detailRow.dataset.keyword = keyword;
+  detailRow.dataset.detailType = type;
+
+  const detailCell = document.createElement('td');
+  detailCell.colSpan = 4;
+
   const panel = document.createElement('div');
   panel.className = 'detail-panel';
 
+  const header = document.createElement('div');
+  header.className = 'detail-panel__header';
+
+  const typeLabel = document.createElement('span');
+  typeLabel.className = 'detail-panel__type';
+  typeLabel.textContent = type;
+
   const title = document.createElement('h3');
-  title.textContent = `${type} matches for "${keyword}" (${matches.length})`;
-  panel.appendChild(title);
+  title.textContent = `Matches for "${keyword}" (${matches.length})`;
+
+  const titleGroup = document.createElement('div');
+  titleGroup.className = 'detail-panel__title-group';
+  titleGroup.append(typeLabel, title);
+
+  const closeButton = document.createElement('button');
+  closeButton.type = 'button';
+  closeButton.className = 'detail-panel__close';
+  closeButton.textContent = 'Close';
+  closeButton.addEventListener('click', () => detailRow.remove());
+
+  header.append(titleGroup, closeButton);
+  panel.appendChild(header);
 
   if (matches.length === 0) {
     const note = document.createElement('p');
@@ -27,25 +76,33 @@ const renderDetailPanel = (keyword, type, matches) => {
     panel.appendChild(note);
   } else {
     const list = document.createElement('ul');
-    matches.forEach((domain) => {
+    matches.forEach((record) => {
       const item = document.createElement('li');
-      item.textContent = domain;
+
+      const name = document.createElement('div');
+      name.className = 'detail-panel__domain';
+      name.textContent = record.domain || '—';
+
+      const meta = document.createElement('div');
+      meta.className = 'detail-panel__meta';
+      const price = document.createElement('span');
+      price.textContent = `Price: ${record.price || '—'}`;
+      const date = document.createElement('span');
+      date.textContent = `Date: ${record.date || '—'}`;
+      const venue = document.createElement('span');
+      venue.textContent = `Venue: ${record.venue || '—'}`;
+      meta.append(price, date, venue);
+
+      item.append(name, meta);
       list.appendChild(item);
     });
     panel.appendChild(list);
   }
 
-  detailPanels.appendChild(panel);
-  panel.scrollIntoView({ behavior: 'smooth' });
-};
-
-const createCountButton = (count, keyword, type, matches) => {
-  const button = document.createElement('button');
-  button.type = 'button';
-  button.textContent = count;
-  button.disabled = count === 0;
-  button.addEventListener('click', () => renderDetailPanel(keyword, type, matches));
-  return button;
+  detailCell.appendChild(panel);
+  detailRow.appendChild(detailCell);
+  row.after(detailRow);
+  detailRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
 const createStatusPanel = (title, message) => {
@@ -112,11 +169,11 @@ const analyze = () => {
     domainRecords.forEach((record) => {
       const normalized = record.label;
       if (normalized.startsWith(lowerKeyword)) {
-        prefixMatches.push(record.domain);
+        prefixMatches.push(record);
       } else if (normalized.endsWith(lowerKeyword)) {
-        suffixMatches.push(record.domain);
+        suffixMatches.push(record);
       } else if (normalized.includes(lowerKeyword)) {
-        exactMatches.push(record.domain);
+        exactMatches.push(record);
       }
     });
 
