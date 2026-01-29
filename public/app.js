@@ -30,7 +30,15 @@ const parseDomainList = (raw) =>
 const createCountButton = (count, priceValue, keyword, type, matches) => {
   const button = document.createElement('button');
   button.type = 'button';
-  button.textContent = `${count} (${formatPriceForDisplay(priceValue)})`;
+  const countSpan = document.createElement('span');
+  countSpan.className = 'count-value';
+  countSpan.textContent = count;
+
+  const priceSpan = document.createElement('span');
+  priceSpan.className = 'price-value';
+  priceSpan.textContent = `(${formatPriceForDisplay(priceValue)})`;
+
+  button.append(countSpan, priceSpan);
   button.disabled = count === 0;
   button.addEventListener('click', () => renderDetailRow(button.closest('tr'), keyword, type, matches));
   return button;

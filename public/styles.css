@@ -96,10 +96,33 @@ th {
 table button {
   background: none;
   border: none;
-  color: #1d4ed8;
   padding: 0;
   cursor: pointer;
   font-weight: 600;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.25rem;
+  line-height: 1;
+}
+
+table button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+.count-value {
+  color: #1d4ed8;
+  font-size: 1.3em;
+  font-weight: 600;
+}
+
+.price-value {
+  color: #0b0b0b;
+  font-size: 1em;
+}
+
+table button:hover {
+  background: #fff;
 }
 
 .sort-controls {
@@ -109,26 +132,32 @@ table button {
 }
 
 .sort-button {
-  width: 26px;
-  height: 26px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
-  border: 1px solid #e1e1e6;
+  border: 1px solid #d5d7e0;
   background: #fff;
-  font-size: 0.65rem;
+  font-size: 0.85rem;
   font-weight: 700;
   line-height: 1;
   cursor: pointer;
-  transition: background 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1d4ed8;
 }
 
 .sort-button:hover {
-  background: #eef2ff;
+  border-color: #97a2ff;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.15);
 }
 
 .sort-button.active {
-  background: #1d4ed8;
-  color: #fff;
   border-color: #1d4ed8;
+  box-shadow: 0 0 0 2px rgba(29, 78, 216, 0.25);
+  background: #fff;
+  color: #1d4ed8;
 }
 
 .detail-row td {
