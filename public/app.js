@@ -11,16 +11,26 @@ const sortButtons = document.querySelectorAll('.sort-button');
 let keywordResults = [];
 let activeSort = { type: null, order: null };
 
+const parsePriceValue = (priceString) => {
+  if (!priceString) return 0;
+  const normalized = priceString.replace(/[^\d.-]/g, '');
+  const parsed = Number(normalized);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const formatPriceForDisplay = (value) =>
+  new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 }).format(value);
+
 const parseDomainList = (raw) =>
   raw
     .split(/\n/)
     .map((value) => value.trim())
     .filter((value) => value.length > 0);
 
-const createCountButton = (count, keyword, type, matches) => {
+const createCountButton = (count, priceValue, keyword, type, matches) => {
   const button = document.createElement('button');
   button.type = 'button';
-  button.textContent = count;
+  button.textContent = `${count} (${formatPriceForDisplay(priceValue)})`;
   button.disabled = count === 0;
   button.addEventListener('click', () => renderDetailRow(button.closest('tr'), keyword, type, matches));
   return button;
@@ -126,21 +136,23 @@ const renderKeywordRows = () => {
 
     const prefixCell = document.createElement('td');
     prefixCell.appendChild(
-      createCountButton(result.prefixMatches.length, result.keyword, 'Prefix', result.prefixMatches)
+      createCountButton(result.prefixMatches.length, result.prefixTotal, result.keyword, 'Prefix', result.prefixMatches)
     );
 
     const suffixCell = document.createElement('td');
     suffixCell.appendChild(
-      createCountButton(result.suffixMatches.length, result.keyword, 'Suffix', result.suffixMatches)
+      createCountButton(result.suffixMatches.length, result.suffixTotal, result.keyword, 'Suffix', result.suffixMatches)
     );
 
     const exactCell = document.createElement('td');
     exactCell.appendChild(
-      createCountButton(result.exactMatches.length, result.keyword, 'Exact match', result.exactMatches)
+      createCountButton(result.exactMatches.length, result.exactTotal, result.keyword, 'Exact match', result.exactMatches)
     );
 
     const totalCell = document.createElement('td');
-    totalCell.textContent = result.totalCount;
+    totalCell.appendChild(
+      createCountButton(result.totalCount, result.totalPrice, result.keyword, 'Total', result.totalMatches)
+    );
 
     row.append(keywordCell, prefixCell, suffixCell, exactCell, totalCell);
     resultsTable.appendChild(row);
@@ -235,28 +247,42 @@ const analyze = () => {
   keywordResults = keywords.map((keyword) => {
     const lowerKeyword = keyword.toLowerCase();
     const prefixMatches = [];
+    let prefixTotal = 0;
     const suffixMatches = [];
+    let suffixTotal = 0;
     const exactMatches = [];
+    let exactTotal = 0;
 
     domainRecords.forEach((record) => {
+      const priceValue = parsePriceValue(record.price);
       const normalized = record.label;
       if (normalized.startsWith(lowerKeyword)) {
         prefixMatches.push(record);
+        prefixTotal += priceValue;
       } else if (normalized.endsWith(lowerKeyword)) {
         suffixMatches.push(record);
+        suffixTotal += priceValue;
       } else if (normalized.includes(lowerKeyword)) {
         exactMatches.push(record);
+        exactTotal += priceValue;
       }
     });
 
-    const totalCount = prefixMatches.length + suffixMatches.length + exactMatches.length;
+    const totalMatches = [...prefixMatches, ...suffixMatches, ...exactMatches];
+    const totalCount = totalMatches.length;
+    const totalPrice = prefixTotal + suffixTotal + exactTotal;
 
     return {
       keyword,
       prefixMatches,
+      prefixTotal,
       suffixMatches,
+      suffixTotal,
       exactMatches,
+      exactTotal,
       totalCount,
+      totalPrice,
+      totalMatches,
     };
   });
 
