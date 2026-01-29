@@ -6,6 +6,10 @@ const datasetCount = document.getElementById('dataset-count');
 const datasetStatus = document.getElementById('dataset-status');
 
 const domainRecords = window.__DOMAIN_DATA__ || [];
+const sortButtons = document.querySelectorAll('.sort-button');
+
+let keywordResults = [];
+let activeSort = { type: null, order: null };
 
 const parseDomainList = (raw) =>
   raw
@@ -42,7 +46,7 @@ const renderDetailRow = (row, keyword, type, matches) => {
   detailRow.dataset.detailType = type;
 
   const detailCell = document.createElement('td');
-  detailCell.colSpan = 4;
+  detailCell.colSpan = 5;
 
   const panel = document.createElement('div');
   panel.className = 'detail-panel';
@@ -105,6 +109,72 @@ const renderDetailRow = (row, keyword, type, matches) => {
   detailRow.scrollIntoView({ behavior: 'smooth', block: 'start' });
 };
 
+const updateSortButtonStates = () => {
+  sortButtons.forEach((button) => {
+    const isActive = button.dataset.type === activeSort.type && button.dataset.order === activeSort.order;
+    button.classList.toggle('active', isActive);
+  });
+};
+
+const renderKeywordRows = () => {
+  resultsTable.innerHTML = '';
+
+  keywordResults.forEach((result) => {
+    const row = document.createElement('tr');
+    const keywordCell = document.createElement('td');
+    keywordCell.textContent = result.keyword;
+
+    const prefixCell = document.createElement('td');
+    prefixCell.appendChild(
+      createCountButton(result.prefixMatches.length, result.keyword, 'Prefix', result.prefixMatches)
+    );
+
+    const suffixCell = document.createElement('td');
+    suffixCell.appendChild(
+      createCountButton(result.suffixMatches.length, result.keyword, 'Suffix', result.suffixMatches)
+    );
+
+    const exactCell = document.createElement('td');
+    exactCell.appendChild(
+      createCountButton(result.exactMatches.length, result.keyword, 'Exact match', result.exactMatches)
+    );
+
+    const totalCell = document.createElement('td');
+    totalCell.textContent = result.totalCount;
+
+    row.append(keywordCell, prefixCell, suffixCell, exactCell, totalCell);
+    resultsTable.appendChild(row);
+  });
+};
+
+const sortKeywordResults = (type, order) => {
+  const direction = order === 'desc' ? -1 : 1;
+
+  const getCount = (result) => {
+    if (type === 'total') {
+      return result.totalCount;
+    }
+    const matchKey = `${type}Matches`;
+    return result[matchKey].length;
+  };
+
+  keywordResults.sort((a, b) => {
+    const difference = getCount(a) - getCount(b);
+    if (difference === 0) {
+      return a.keyword.localeCompare(b.keyword);
+    }
+    return direction * difference;
+  });
+
+  activeSort = { type, order };
+  updateSortButtonStates();
+  renderKeywordRows();
+};
+
+sortButtons.forEach((button) => {
+  button.addEventListener('click', () => sortKeywordResults(button.dataset.type, button.dataset.order));
+});
+
 const createStatusPanel = (title, message) => {
   const panel = document.createElement('div');
   panel.className = 'detail-panel';
@@ -152,6 +222,8 @@ const analyze = () => {
   resultsTable.innerHTML = '';
 
   if (keywords.length === 0) {
+    keywordResults = [];
+    renderKeywordRows();
     return;
   }
 
@@ -160,7 +232,7 @@ const analyze = () => {
     return;
   }
 
-  keywords.forEach((keyword) => {
+  keywordResults = keywords.map((keyword) => {
     const lowerKeyword = keyword.toLowerCase();
     const prefixMatches = [];
     const suffixMatches = [];
@@ -177,22 +249,22 @@ const analyze = () => {
       }
     });
 
-    const row = document.createElement('tr');
-    const keywordCell = document.createElement('td');
-    keywordCell.textContent = keyword;
+    const totalCount = prefixMatches.length + suffixMatches.length + exactMatches.length;
 
-    const prefixCell = document.createElement('td');
-    prefixCell.appendChild(createCountButton(prefixMatches.length, keyword, 'Prefix', prefixMatches));
-
-    const suffixCell = document.createElement('td');
-    suffixCell.appendChild(createCountButton(suffixMatches.length, keyword, 'Suffix', suffixMatches));
-
-    const exactCell = document.createElement('td');
-    exactCell.appendChild(createCountButton(exactMatches.length, keyword, 'Exact match', exactMatches));
-
-    row.append(keywordCell, prefixCell, suffixCell, exactCell);
-    resultsTable.appendChild(row);
+    return {
+      keyword,
+      prefixMatches,
+      suffixMatches,
+      exactMatches,
+      totalCount,
+    };
   });
+
+  if (activeSort.type) {
+    sortKeywordResults(activeSort.type, activeSort.order);
+  } else {
+    renderKeywordRows();
+  }
 };
 
 const datasetLoaded = domainRecords.length > 0;

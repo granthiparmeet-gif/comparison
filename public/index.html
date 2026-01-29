@@ -31,9 +31,34 @@
           <thead>
             <tr>
               <th>Keyword</th>
-              <th>Prefix Count</th>
-              <th>Suffix Count</th>
-              <th>Exact Match Count</th>
+              <th>
+                Prefix Count
+                <div class="sort-controls">
+                  <button type="button" class="sort-button" data-type="prefix" data-order="asc">▲</button>
+                  <button type="button" class="sort-button" data-type="prefix" data-order="desc">▼</button>
+                </div>
+              </th>
+              <th>
+                Suffix Count
+                <div class="sort-controls">
+                  <button type="button" class="sort-button" data-type="suffix" data-order="asc">▲</button>
+                  <button type="button" class="sort-button" data-type="suffix" data-order="desc">▼</button>
+                </div>
+              </th>
+              <th>
+                Exact Match Count
+                <div class="sort-controls">
+                  <button type="button" class="sort-button" data-type="exact" data-order="asc">▲</button>
+                  <button type="button" class="sort-button" data-type="exact" data-order="desc">▼</button>
+                </div>
+              </th>
+              <th>
+                Total Count
+                <div class="sort-controls">
+                  <button type="button" class="sort-button" data-type="total" data-order="asc">▲</button>
+                  <button type="button" class="sort-button" data-type="total" data-order="desc">▼</button>
+                </div>
+              </th>
             </tr>
           </thead>
           <tbody>
